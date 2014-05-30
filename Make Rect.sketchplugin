@@ -1,0 +1,155 @@
+// this script moves the selected object it's given distances (command option r)
+/**
+* Transform or Move
+* Created by John Evans
+* 
+* Presents a window prompting the user to enter a value for a transform
+*
+*/
+
+(
+
+function main ()
+{
+	// if (selection.count() === 0)
+	// {
+	// 	log("Please select an element");
+	// 	return;
+	// }
+
+	var defaults = [NSUserDefaults standardUserDefaults], default_values = [NSMutableDictionary dictionary];
+
+	if (![defaults objectForKey:"rectName"])
+	{
+		log("nil")
+
+		[default_values setObject:"0" forKey:"rectWidth"];
+		[default_values setObject:"0" forKey:"rectHeight"];
+		[default_values setObject:"Rectangle" forKey:"rectName"];
+		[defaults registerDefaults:default_values];
+	}
+
+	var mySelection = selection
+
+	// create a window
+	var window = [[NSWindow alloc] init]
+	var windowTitle = "New Rect"// + [selection[0] name] + "'(x,y)"
+	[window setTitle:windowTitle]
+	[window setFrame:NSMakeRect(0, 0, 500, 200) display:false]
+
+	// create prompt text
+	var rectFormNameField = [[NSTextField alloc] initWithFrame:NSMakeRect(0, 0, 0, 0)]
+	[rectFormNameField setEditable:false]
+	[rectFormNameField setBordered:false]
+	[rectFormNameField setDrawsBackground:false]
+	[rectFormNameField setStringValue:"Name"]
+	[rectFormNameField sizeToFit]
+	[rectFormNameField setFrame:NSMakeRect(32, 200-60, [rectFormNameField frame].size.width, [rectFormNameField frame].size.height)]
+	[[window contentView] addSubview:rectFormNameField]
+
+	// create input field
+	var inputFieldName = [[NSTextField alloc] initWithFrame:NSMakeRect([rectFormNameField frame].origin.x + [rectFormNameField frame].size.width + 8, [rectFormNameField frame].origin.y, 100, 20)]
+	[inputFieldName setStringValue:[defaults objectForKey:"rectName"]]
+	[[window contentView] addSubview:inputFieldName]
+
+	// create prompt text
+	var transformXField = [[NSTextField alloc] initWithFrame:NSMakeRect(0, 0, 0, 0)]
+	[transformXField setEditable:false]
+	[transformXField setBordered:false]
+	[transformXField setDrawsBackground:false]
+	[transformXField setStringValue:"Width"]
+	[transformXField sizeToFit]
+	[transformXField setFrame:NSMakeRect(32, [rectFormNameField frame].origin.y - [rectFormNameField frame].size.height-16, [transformXField frame].size.width, [transformXField frame].size.height)]
+	[[window contentView] addSubview:transformXField]
+
+	// create input field
+	var inputFieldX = [[NSTextField alloc] initWithFrame:NSMakeRect([transformXField frame].origin.x + [transformXField frame].size.width + 8, [transformXField frame].origin.y, 100, 20)]
+	[inputFieldX setStringValue:[defaults objectForKey:"rectWidth"]]
+	[[window contentView] addSubview:inputFieldX]
+
+	// create prompt text
+	var transformYField = [[NSTextField alloc] initWithFrame:NSMakeRect(0, 0, 0, 0)]
+	[transformYField setEditable:false]
+	[transformYField setBordered:false]
+	[transformYField setDrawsBackground:false]
+	[transformYField setStringValue:"Height"]
+	[transformYField sizeToFit]
+	[transformYField setFrame:NSMakeRect(32, [transformXField frame].origin.y - [transformXField frame].size.height-16, [transformYField frame].size.width, [transformYField frame].size.height)]
+	[[window contentView] addSubview:transformYField]
+
+	// create input field
+	var inputFieldY = [[NSTextField alloc] initWithFrame:NSMakeRect([transformYField frame].origin.x + [transformYField frame].size.width + 8, [transformYField frame].origin.y, 100, 20)]
+	[inputFieldY setStringValue:[defaults objectForKey:"rectHeight"]]
+	[[window contentView] addSubview:inputFieldY]
+
+
+
+	// create OK button
+	var okButton = [[NSButton alloc] initWithFrame:NSMakeRect(0, 0, 0, 0)]
+	var userClickedOK = false
+	[okButton setTitle:"  Create  "]
+	[okButton setBezelStyle:NSRoundedBezelStyle]
+	[okButton sizeToFit]
+	[okButton setFrame:NSMakeRect([window frame].size.width - [okButton frame].size.width - 20, 14, [okButton frame].size.width, [okButton frame].size.height)]
+	[okButton setKeyEquivalent:"\r"] // return key
+	[okButton setCOSJSTargetFunction:function(sender) {
+		userClickedOK = true
+		[window orderOut:nil]
+		[NSApp stopModal]
+	}];
+
+	[[window contentView] addSubview:okButton]
+
+	// create cancel button
+	var cancelButton = [[NSButton alloc] initWithFrame:NSMakeRect(0, 0, 0, 0)]
+	var userClickedCancel = false
+	[cancelButton setTitle:"  Cancel  "]
+	[cancelButton setBezelStyle:NSRoundedBezelStyle]
+	[cancelButton sizeToFit]
+	[cancelButton setFrame:NSMakeRect([okButton frame].origin.x - [cancelButton frame].size.width, 14, [cancelButton frame].size.width, [cancelButton frame].size.height)]
+	[cancelButton setKeyEquivalent:@"\033"] // escape key
+	[cancelButton setCOSJSTargetFunction:function(sender) {
+		userClickedCancel = true
+		[window orderOut:nil]
+		[NSApp stopModal]
+	}]
+
+	[[window contentView] addSubview:cancelButton]
+
+	// get the user input
+	[NSApp runModalForWindow:window]
+
+	// Window was closed
+	var rectWidth = eval([inputFieldX stringValue].split(",")[0])
+	var rectHeight = eval([inputFieldY stringValue].split(",")[0])
+	// log("x delta: " + x_delta)
+	// log("y delta: " + y_delta)
+
+	if (!userClickedCancel)
+	{
+		[default_values setObject:[inputFieldX stringValue] forKey:"rectWidth"];
+		[default_values setObject:[inputFieldY stringValue] forKey:"rectHeight"];
+		[default_values setObject:[inputFieldName stringValue] forKey:"rectName"];
+		[defaults registerDefaults:default_values];
+
+		var rectangle = [[doc currentPage] addLayerOfType:"rectangle"]
+		[rectangle setName:[defaults objectForKey:"rectName"]]
+
+		var frame = [rectangle frame]
+		[frame setWidth:rectWidth]
+		[frame setHeight:rectHeight]
+
+		var color = [[[[rectangle style] fills] addNewStylePart] color]
+		[color setRed:0.5]
+		[color setGreen:0.5]
+		[color setBlue:0.5]
+		[rectangle select:true byExpandingSelection:false]
+
+	}
+
+	// let the GC gather these guys (and the targets!)
+	okButton = nil;
+	cancelButton = nil;
+	window = nil;
+
+}());

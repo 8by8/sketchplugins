@@ -1,0 +1,61 @@
+// this script moves the selected object it's given distances (command option ')
+/**
+* Transform or Move
+* 
+* Created by John Evans
+* 
+* 
+* Presents a window prompting the user to enter a value for a transform
+*
+*/
+
+(function main ()
+{
+	if (selection.count() === 0)
+	{
+		log("Please select an element");
+		return;
+	}
+
+	var defaults = [NSUserDefaults standardUserDefaults], default_values = [NSMutableDictionary dictionary];
+
+
+	if ([defaults objectForKey:"x_delta"])
+	{
+	
+		var mySelection = selection
+
+		// Window was closed
+		var x_delta = eval([defaults objectForKey:"x_delta"].split(",")[0])
+		var y_delta = eval([defaults objectForKey:"y_delta"].split(",")[0])
+		log (defaults)
+
+		for (var i=0; i<[selection count]; i++)
+		{
+			var layer = selection[i];
+
+			if ([defaults objectForKey:"userClickedOK"] == true)
+			{
+				log("Transform")
+				var frame = [layer frame];
+			}
+			else if ([defaults objectForKey:"userClickedCopy"] == true)
+			{
+				log("Copy and Transform")
+				var layerCopy = [layer duplicate];
+				var frame = [layerCopy frame];
+				[layerCopy select:true byExpandingSelection:false]
+			}
+			[frame setX:[frame x] + x_delta];
+			[frame setY:[frame y] + y_delta];
+
+		}	
+	}
+
+	// let the GC gather these guys (and the targets!)
+	okButton = nil;
+	okButton2 = nil;
+	cancelButton = nil;
+	window = nil;
+
+}());

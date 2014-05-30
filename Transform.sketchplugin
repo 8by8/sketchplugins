@@ -1,0 +1,162 @@
+// this script moves the selected object it's given distances (command ')
+/**
+* Transform or Move
+* Created by John Evans
+* 
+* Presents a window prompting the user to enter a value for a transform
+*
+*/
+
+(
+
+function main ()
+{
+	if (selection.count() === 0)
+	{
+		log("Please select an element");
+		return;
+	}
+
+	var defaults = [NSUserDefaults standardUserDefaults], default_values = [NSMutableDictionary dictionary];
+
+	if (![defaults objectForKey:"x_delta"])
+	{
+		log("nil")
+
+		[default_values setObject:"0" forKey:"x_delta"];
+		[default_values setObject:"0" forKey:"y_delta"];
+		[defaults registerDefaults:default_values];
+	}
+
+	var mySelection = selection
+
+	// create a window
+	var window = [[NSWindow alloc] init]
+	var windowTitle = "Transform"// + [selection[0] name] + "'(x,y)"
+	[window setTitle:windowTitle]
+	[window setFrame:NSMakeRect(0, 0, 500, 200) display:false]
+
+	// create prompt text
+	var transformXField = [[NSTextField alloc] initWithFrame:NSMakeRect(0, 0, 0, 0)]
+	[transformXField setEditable:false]
+	[transformXField setBordered:false]
+	[transformXField setDrawsBackground:false]
+	[transformXField setStringValue:"X"]
+	[transformXField sizeToFit]
+	[transformXField setFrame:NSMakeRect(32, 200-60, [transformXField frame].size.width, [transformXField frame].size.height)]
+	[[window contentView] addSubview:transformXField]
+
+	// create input field
+	var inputFieldX = [[NSTextField alloc] initWithFrame:NSMakeRect([transformXField frame].origin.x + [transformXField frame].size.width + 8, [transformXField frame].origin.y, 100, 20)]
+	[inputFieldX setStringValue:[defaults objectForKey:"x_delta"]]
+	[[window contentView] addSubview:inputFieldX]
+
+	// create prompt text
+	var transformYField = [[NSTextField alloc] initWithFrame:NSMakeRect(0, 0, 0, 0)]
+	[transformYField setEditable:false]
+	[transformYField setBordered:false]
+	[transformYField setDrawsBackground:false]
+	[transformYField setStringValue:"Y"]
+	[transformYField sizeToFit]
+	[transformYField setFrame:NSMakeRect(32, [transformXField frame].origin.y - [transformXField frame].size.height-16, [transformYField frame].size.width, [transformYField frame].size.height)]
+	[[window contentView] addSubview:transformYField]
+
+	// create input field
+	var inputFieldY = [[NSTextField alloc] initWithFrame:NSMakeRect([transformYField frame].origin.x + [transformYField frame].size.width + 8, [transformYField frame].origin.y, 100, 20)]
+	[inputFieldY setStringValue:[defaults objectForKey:"y_delta"]]
+	[[window contentView] addSubview:inputFieldY]
+
+	// create OK button
+	var okButton = [[NSButton alloc] initWithFrame:NSMakeRect(0, 0, 0, 0)]
+	var userClickedOK = false
+	[okButton setTitle:"  Transform  "]
+	[okButton setBezelStyle:NSRoundedBezelStyle]
+	[okButton sizeToFit]
+	[okButton setFrame:NSMakeRect([window frame].size.width - [okButton frame].size.width - 20, 14, [okButton frame].size.width, [okButton frame].size.height)]
+	[okButton setKeyEquivalent:"\r"] // return key
+	[okButton setCOSJSTargetFunction:function(sender) {
+		userClickedOK = true
+		[window orderOut:nil]
+		[NSApp stopModal]
+	}];
+
+	// create OK button
+	var okButton2 = [[NSButton alloc] initWithFrame:NSMakeRect(0, 0, 0, 0)]
+	var userClickedCopy = false
+	[okButton2 setTitle:"  Copy & Transform  "]
+	[okButton2 setBezelStyle:NSRoundedBezelStyle]
+	[okButton2 sizeToFit]
+	[okButton2 setFrame:NSMakeRect([okButton frame].origin.x - [okButton2 frame].size.width - 20, 14, [okButton2 frame].size.width, [okButton2 frame].size.height)]
+	[okButton2 setKeyEquivalentModifierMask: NSCommandKeyMask];
+	[okButton2 setKeyEquivalent:"\r"] // return key
+	[okButton2 setCOSJSTargetFunction:function(sender) {
+		userClickedCopy = true
+		[window orderOut:nil]
+		[NSApp stopModal]
+	}];
+
+	[[window contentView] addSubview:okButton]
+	[[window contentView] addSubview:okButton2]
+
+	// create cancel button
+	var cancelButton = [[NSButton alloc] initWithFrame:NSMakeRect(0, 0, 0, 0)]
+	var userClickedCancel = false
+	[cancelButton setTitle:"  Cancel  "]
+	[cancelButton setBezelStyle:NSRoundedBezelStyle]
+	[cancelButton sizeToFit]
+	[cancelButton setFrame:NSMakeRect([okButton2 frame].origin.x - [cancelButton frame].size.width, 14, [cancelButton frame].size.width, [cancelButton frame].size.height)]
+	[cancelButton setKeyEquivalent:@"\033"] // escape key
+	[cancelButton setCOSJSTargetFunction:function(sender) {
+		userClickedCancel = true
+		[window orderOut:nil]
+		[NSApp stopModal]
+	}]
+
+	[[window contentView] addSubview:cancelButton]
+
+	// get the user input
+	[NSApp runModalForWindow:window]
+
+	// Window was closed
+	var x_delta = eval([inputFieldX stringValue].split(",")[0])
+	var y_delta = eval([inputFieldY stringValue].split(",")[0])
+	// log("x delta: " + x_delta)
+	// log("y delta: " + y_delta)
+
+	if (!userClickedCancel)
+	{
+		[default_values setObject:[inputFieldX stringValue] forKey:"x_delta"];
+		[default_values setObject:[inputFieldY stringValue] forKey:"y_delta"];
+		
+		[default_values setObject:userClickedOK forKey:"userClickedOK"];
+		[default_values setObject:userClickedCopy forKey:"userClickedCopy"];
+		[defaults registerDefaults:default_values];
+
+		for (var i=0; i<[selection count]; i++)
+		{
+			var layer = selection[i];
+
+			if (userClickedOK)
+			{
+				log("Transform")
+				var frame = [layer frame];
+			}
+			else if (userClickedCopy)
+			{
+				log("Copy and Transform")
+				var layerCopy = [layer duplicate];
+				var frame = [layerCopy frame];
+				[layerCopy select:true byExpandingSelection:false]
+			}
+			[frame setX:[frame x] + x_delta];
+			[frame setY:[frame y] + y_delta];
+		}
+	}
+
+	// let the GC gather these guys (and the targets!)
+	okButton = nil;
+	okButton2 = nil;
+	cancelButton = nil;
+	window = nil;
+
+}());
